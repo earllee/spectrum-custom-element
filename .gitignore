@@ -1,0 +1,12 @@
+*.swp
+Color.js
+DOMExtension.js
+Object.js
+Popover.js
+Spectrum-chrome.js
+Spectrum-master.js
+View.js
+WebInspector.js
+spectrum.css
+inspector.css
+
