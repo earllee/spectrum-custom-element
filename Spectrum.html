@@ -12,6 +12,30 @@
 <script src="./Color.js"></script>
 
 <template id="spectrum-swatch-template">
+  <style>
+    .swatch {
+        margin-left: 1px;
+        margin-right: 2px;
+        width: 10px;
+        height: 10px;
+        position: relative;
+        top: 1px;
+        display: inline-block;
+        background-image: url(Images/checker.png);
+        -webkit-user-select: none;
+    }
+
+    .swatch-inner {
+        width: 100%;
+        height: 100%;
+        display: inline-block;
+        border: 1px solid rgba(128, 128, 128, 0.6);
+    }
+
+    .swatch-inner:hover {
+        border: 1px solid rgba(64, 64, 64, 0.8);
+    }
+  </style>
   <nobr>
     <span title="Mouseover txt..." class="swatch">
       <span class="swatch-inner" style="background-color: rgb(22, 26, 34);"></span>
@@ -20,7 +44,13 @@
   </nobr>
 </template>
 
-<template id="spectrum-popup-template">
+<template id="spectrum-popover-template">
+  <style>
+    @import url("spectrum.css")
+  </style>
+</template>
+
+<template>
   <div class="view vbox spectrum-container" tabindex="0">
       <div class="spectrum-top">
           <div class="spectrum-fill"></div>
@@ -48,38 +78,68 @@
 </template>
 
 <template id="color-picker-template">
-  <style>
-    @import url("./inspector.css");
-    @import url("./spectrum.css");
-  </style>
-
   <spectrum-swatch>
   </spectrum-swatch>
 
-  <spectrum-popover hidden>
+  <spectrum-popover>
   </spectrum-popover>
 </template>
 
 <script>
   var importDoc = document.currentScript.ownerDocument;
 
-  var proto = Object.create(HTMLElement.prototype, {
+  // The master element
+  var colorPickerPrototype = Object.create(HTMLElement.prototype, {
     createdCallback: {
       value: function() {
-        var t = importDoc.querySelector('#spectrum-element-template');
+        var t = importDoc.querySelector('#color-picker-template');
         var clone = document.importNode(t.content, true);
         var root = this.createShadowRoot(); 
         root.appendChild(clone);
 
-        console.log('Successfully stamped out spectrum-element!');
+        console.log('Successfully stamped out color-picker!');
       }
     }
   });
-  document.registerElement('spectrum-element', {prototype: proto});
+  document.registerElement('color-picker', {prototype: colorPickerPrototype});
+
+  // The swatch
+  var spectrumSwatchPrototype = Object.create(HTMLElement.prototype, {
+    createdCallback: {
+      value: function() {
+        var t = importDoc.querySelector('#spectrum-swatch-template');
+        var clone = document.importNode(t.content, true);
+        var root = this.createShadowRoot(); 
+        root.appendChild(clone);
+
+        console.log('Successfully stamped out spectrum-swatch!');
+      }
+    }
+  });
+  document.registerElement('spectrum-swatch', {prototype:
+    spectrumSwatchPrototype});
+
+  // The popover
+  var spectrumPopoverPrototype = Object.create(HTMLElement.prototype, {
+    createdCallback: {
+      value: function() {
+        var t = importDoc.querySelector('#spectrum-popover-template');
+        var clone = document.importNode(t.content, true);
+        var root = this.createShadowRoot(); 
+        root.appendChild(clone);
+
+        this.Spectrum = new Spectrum();
+        root.appendChild(this.Spectrum.element);
+
+        console.log('Successfully stamped out spectrum-popover!');
+      }
+    }
+  });
+  document.registerElement('spectrum-popover', {prototype: spectrumPopoverPrototype});
  
   Spectrum = function()
   {
-      WebInspector.VBox.call(this);
+      this.element = document.createElement("div");
       this.element.classList.add("spectrum-container");
       this.element.tabIndex = 0;
 
@@ -114,6 +174,8 @@
 
       Spectrum.draggable(this._sliderElement, hueDrag.bind(this));
       Spectrum.draggable(this._draggerElement, colorDrag.bind(this), colorDragStart.bind(this));
+
+      console.log(this.element);
 
       /**
        * @param {!Element} element
@@ -495,13 +557,5 @@
           this._swatchInnerElement.style.backgroundColor = colorString;
       }
   }
-
-  var cswatch = new ColorSwatch();
-  cswatch.setColorString('#CCCCCC');
-  document.body.appendChild(cswatch.element);
-
-  var spctrm = new Spectrum();
-  console.log(spctrm.element);
-  document.body.appendChild(spctrm.element);
 
 </script>
