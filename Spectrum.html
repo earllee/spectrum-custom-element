@@ -4,37 +4,31 @@
       color picker. 
 -->
 
-<script src="./DOMExtension.js"></script>
-<script src="./WebInspector.js"></script>
-<script src="./Object.js"></script>
-<script src="./View.js"></script>
-<script src="./Popover.js"></script>
-<script src="./Color.js"></script>
+<!-- <script src="./externs.js"></script> -->
+<script src="./utilities.js"></script>
+
+
+<script type="text/javascript" src="common/WebInspector.js"></script>
+<script type="text/javascript" src="common/Object.js"></script>
+<script type="text/javascript" src="common/ParsedURL.js"></script>
+<script type="text/javascript" src="common/Color.js"></script>
+<script type="text/javascript" src="common/Geometry.js"></script>
+<script type="text/javascript" src="common/DOMExtension.js"></script>
+<script type="text/javascript" src="ui/SettingsUI.js"></script>
+<script type="text/javascript" src="main/Main.js"></script>
+<script type="text/javascript" src="ui/View.js"></script>
+<script type="text/javascript" src="ui/UIUtils.js"></script>
+<script type="text/javascript" src="InspectorFrontendHostStub.js"></script>
+<script type="text/javascript" src="./Popover.js"></script>
+<script type="text/javascript" src="components/InspectorView.js"></script>
+<script type="text/javascript" src="ui/Dialog.js"></script>
+
+
+
 
 <template id="spectrum-swatch-template">
   <style>
-    .swatch {
-        margin-left: 1px;
-        margin-right: 2px;
-        width: 10px;
-        height: 10px;
-        position: relative;
-        top: 1px;
-        display: inline-block;
-        background-image: url(Images/checker.png);
-        -webkit-user-select: none;
-    }
-
-    .swatch-inner {
-        width: 100%;
-        height: 100%;
-        display: inline-block;
-        border: 1px solid rgba(128, 128, 128, 0.6);
-    }
-
-    .swatch-inner:hover {
-        border: 1px solid rgba(64, 64, 64, 0.8);
-    }
+    @import url("spectrum.css")
   </style>
   <nobr>
     <span title="Mouseover txt..." class="swatch">
@@ -50,35 +44,8 @@
   </style>
 </template>
 
-<template>
-  <div class="view vbox spectrum-container" tabindex="0">
-      <div class="spectrum-top">
-          <div class="spectrum-fill"></div>
-
-          <div class="spectrum-top-inner fill">
-              <div class="spectrum-color">
-                  <div class="spectrum-sat fill">
-                      <div class="spectrum-val fill">
-                          <div class="spectrum-dragger"></div>
-                      </div>
-                  </div>
-              </div>
-
-              <div class="spectrum-hue">
-                  <div class="spectrum-slider"></div>
-              </div>
-          </div>
-      </div>
-
-      <div class="spectrum-range-container">
-          <label>α:</label><input class="spectrum-range" max="100" min="0" type=
-          "range">
-      </div>
-  </div>
-</template>
-
 <template id="color-picker-template">
-  <style>
+<style>
     @import url("spectrum.css")
   </style>
 </template>
@@ -93,8 +60,8 @@
         var t = importDoc.querySelector('#color-picker-template');
         var clone = document.importNode(t.content, true);
         var root = this.createShadowRoot(); 
-        root.appendChild(clone);
 
+        root.appendChild(clone);
         root.appendChild(processColor("#CCCCCC"));
 
         console.log('Successfully stamped out color-picker!');
@@ -139,6 +106,9 @@
  
   Spectrum = function()
   {
+      WebInspector.VBox.call(this);
+      this.registerRequiredCSS("spectrum.css");
+      
       this.element = document.createElement("div");
       this.element.classList.add("spectrum-container");
       this.element.tabIndex = 0;
@@ -421,6 +391,8 @@
           this._updateUI();
       },
 
+      __proto__: WebInspector.VBox.prototype
+
   }
 
   /**
@@ -493,12 +465,12 @@ console.log("SpectrumPopupHelper:show run.");
 
       reposition: function(element)
       {
-        /*
+       
           if (!this._previousFocusElement)
               this._previousFocusElement = WebInspector.currentFocusElement();
           this._popover.showView(this._spectrum, element);
           WebInspector.setCurrentFocusElement(this._spectrum.element);
-          */
+          
       },
 
       /**
@@ -655,7 +627,7 @@ console.log("SpectrumPopupHelper:show run.");
 
           console.log(spectrumHelper);
           var visible = spectrumHelper.toggle(colorSwatch.element, color, format);
-          if (true || visible) {
+          if (visible) {
               spectrum.displayText = color.toString(format);
               //this.originalPropertyText = this.property.propertyText;
               //this.editablePane()._isEditingStyle = true;
@@ -663,10 +635,11 @@ console.log("SpectrumPopupHelper:show run.");
               spectrumHelper.addEventListener(SpectrumPopupHelper.Events.Hidden, boundSpectrumHidden);
 
               scrollerElement = colorSwatch.element.enclosingNodeOrSelfWithClass("scroll-target");
+              //console.log(colorSwatch.element);
               if (scrollerElement)
                   scrollerElement.addEventListener("scroll", repositionSpectrum, false);
-              else
-                  console.error("Unable to handle color picker scrolling");
+              //else
+              //    console.error("Unable to handle color picker scrolling");
           }
       }
 
@@ -741,6 +714,7 @@ console.log(container);
       return container;
   }
 
+  // Color library
 /**
  * @param {!Array.<number>} rgba
  * @param {string=} format
