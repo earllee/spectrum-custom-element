@@ -94,10 +94,7 @@ WebInspector.Popover.prototype = {
         WebInspector.Popover._popover = this;
 
         // Temporarily attach in order to measure preferred dimensions.
-//         var preferredSize = view ? view.measurePreferredSize() : this.contentElement.measurePreferredSize();
-       preferredWidth = 211;
-       preferredHeight = 220;
-       
+        var preferredSize = view ? view.measurePreferredSize() : this.contentElement.measurePreferredSize();
         preferredWidth = preferredWidth || preferredSize.width;
         preferredHeight = preferredHeight || preferredSize.height;
 
@@ -148,82 +145,82 @@ WebInspector.Popover.prototype = {
      */
     _positionElement: function(anchorElement, preferredWidth, preferredHeight, arrowDirection)
     {
-//         const borderWidth = 25;
-//         const scrollerWidth = this._hasFixedHeight ? 0 : 11;
-//         const arrowHeight = 15;
-//         const arrowOffset = 10;
-//         const borderRadius = 10;
+        const borderWidth = 25;
+        const scrollerWidth = this._hasFixedHeight ? 0 : 11;
+        const arrowHeight = 15;
+        const arrowOffset = 10;
+        const borderRadius = 10;
 
-//         // Skinny tooltips are not pretty, their arrow location is not nice.
-//         preferredWidth = Math.max(preferredWidth, 50);
-//         // Position relative to main DevTools element.
-//         const container = WebInspector.Dialog.modalHostView().element;
-//         const totalWidth = container.offsetWidth;
-//         const totalHeight = container.offsetHeight;
+        // Skinny tooltips are not pretty, their arrow location is not nice.
+        preferredWidth = Math.max(preferredWidth, 50);
+        // Position relative to main DevTools element.
+        const container = WebInspector.Dialog.modalHostView().element;
+        const totalWidth = container.offsetWidth;
+        const totalHeight = container.offsetHeight;
 
-//         var anchorBox = anchorElement instanceof AnchorBox ? anchorElement : anchorElement.boxInWindow(window);
-//         anchorBox = anchorBox.relativeToElement(container);
-//         var newElementPosition = { x: 0, y: 0, width: preferredWidth + scrollerWidth, height: preferredHeight };
+        var anchorBox = anchorElement instanceof AnchorBox ? anchorElement : anchorElement.boxInWindow(window);
+        anchorBox = anchorBox.relativeToElement(container);
+        var newElementPosition = { x: 0, y: 0, width: preferredWidth + scrollerWidth, height: preferredHeight };
 
-//         var verticalAlignment;
-//         var roomAbove = anchorBox.y;
-//         var roomBelow = totalHeight - anchorBox.y - anchorBox.height;
+        var verticalAlignment;
+        var roomAbove = anchorBox.y;
+        var roomBelow = totalHeight - anchorBox.y - anchorBox.height;
 
-//         if ((roomAbove > roomBelow) || (arrowDirection === WebInspector.Popover.Orientation.Bottom)) {
-//             // Positioning above the anchor.
-//             if ((anchorBox.y > newElementPosition.height + arrowHeight + borderRadius) || (arrowDirection === WebInspector.Popover.Orientation.Bottom))
-//                 newElementPosition.y = anchorBox.y - newElementPosition.height - arrowHeight;
-//             else {
-//                 newElementPosition.y = borderRadius;
-//                 newElementPosition.height = anchorBox.y - borderRadius * 2 - arrowHeight;
-//                 if (this._hasFixedHeight && newElementPosition.height < preferredHeight) {
-//                     newElementPosition.y = borderRadius;
-//                     newElementPosition.height = preferredHeight;
-//                 }
-//             }
-//             verticalAlignment = WebInspector.Popover.Orientation.Bottom;
-//         } else {
-//             // Positioning below the anchor.
-//             newElementPosition.y = anchorBox.y + anchorBox.height + arrowHeight;
-//             if ((newElementPosition.y + newElementPosition.height + borderRadius >= totalHeight) && (arrowDirection !== WebInspector.Popover.Orientation.Top)) {
-//                 newElementPosition.height = totalHeight - borderRadius - newElementPosition.y;
-//                 if (this._hasFixedHeight && newElementPosition.height < preferredHeight) {
-//                     newElementPosition.y = totalHeight - preferredHeight - borderRadius;
-//                     newElementPosition.height = preferredHeight;
-//                 }
-//             }
-//             // Align arrow.
-//             verticalAlignment = WebInspector.Popover.Orientation.Top;
-//         }
+        if ((roomAbove > roomBelow) || (arrowDirection === WebInspector.Popover.Orientation.Bottom)) {
+            // Positioning above the anchor.
+            if ((anchorBox.y > newElementPosition.height + arrowHeight + borderRadius) || (arrowDirection === WebInspector.Popover.Orientation.Bottom))
+                newElementPosition.y = anchorBox.y - newElementPosition.height - arrowHeight;
+            else {
+                newElementPosition.y = borderRadius;
+                newElementPosition.height = anchorBox.y - borderRadius * 2 - arrowHeight;
+                if (this._hasFixedHeight && newElementPosition.height < preferredHeight) {
+                    newElementPosition.y = borderRadius;
+                    newElementPosition.height = preferredHeight;
+                }
+            }
+            verticalAlignment = WebInspector.Popover.Orientation.Bottom;
+        } else {
+            // Positioning below the anchor.
+            newElementPosition.y = anchorBox.y + anchorBox.height + arrowHeight;
+            if ((newElementPosition.y + newElementPosition.height + borderRadius >= totalHeight) && (arrowDirection !== WebInspector.Popover.Orientation.Top)) {
+                newElementPosition.height = totalHeight - borderRadius - newElementPosition.y;
+                if (this._hasFixedHeight && newElementPosition.height < preferredHeight) {
+                    newElementPosition.y = totalHeight - preferredHeight - borderRadius;
+                    newElementPosition.height = preferredHeight;
+                }
+            }
+            // Align arrow.
+            verticalAlignment = WebInspector.Popover.Orientation.Top;
+        }
 
-//         var horizontalAlignment;
-//         if (anchorBox.x + newElementPosition.width < totalWidth) {
-//             newElementPosition.x = Math.max(borderRadius, anchorBox.x - borderRadius - arrowOffset);
-//             horizontalAlignment = "left";
-//         } else if (newElementPosition.width + borderRadius * 2 < totalWidth) {
-//             newElementPosition.x = totalWidth - newElementPosition.width - borderRadius;
-//             horizontalAlignment = "right";
-//             // Position arrow accurately.
-//             var arrowRightPosition = Math.max(0, totalWidth - anchorBox.x - anchorBox.width - borderRadius - arrowOffset);
-//             arrowRightPosition += anchorBox.width / 2;
-//             arrowRightPosition = Math.min(arrowRightPosition, newElementPosition.width - borderRadius - arrowOffset);
-//             this._popupArrowElement.style.right = arrowRightPosition + "px";
-//         } else {
-//             newElementPosition.x = borderRadius;
-//             newElementPosition.width = totalWidth - borderRadius * 2;
-//             newElementPosition.height += scrollerWidth;
-//             horizontalAlignment = "left";
-//             if (verticalAlignment === WebInspector.Popover.Orientation.Bottom)
-//                 newElementPosition.y -= scrollerWidth;
-//             // Position arrow accurately.
-//             this._popupArrowElement.style.left = Math.max(0, anchorBox.x - borderRadius * 2 - arrowOffset) + "px";
-//             this._popupArrowElement.style.left += anchorBox.width / 2;
-//         }
+        var horizontalAlignment;
+        if (anchorBox.x + newElementPosition.width < totalWidth) {
+            newElementPosition.x = Math.max(borderRadius, anchorBox.x - borderRadius - arrowOffset);
+            horizontalAlignment = "left";
+        } else if (newElementPosition.width + borderRadius * 2 < totalWidth) {
+            newElementPosition.x = totalWidth - newElementPosition.width - borderRadius;
+            horizontalAlignment = "right";
+            // Position arrow accurately.
+            var arrowRightPosition = Math.max(0, totalWidth - anchorBox.x - anchorBox.width - borderRadius - arrowOffset);
+            arrowRightPosition += anchorBox.width / 2;
+            arrowRightPosition = Math.min(arrowRightPosition, newElementPosition.width - borderRadius - arrowOffset);
+            this._popupArrowElement.style.right = arrowRightPosition + "px";
+        } else {
+            newElementPosition.x = borderRadius;
+            newElementPosition.width = totalWidth - borderRadius * 2;
+            newElementPosition.height += scrollerWidth;
+            horizontalAlignment = "left";
+            if (verticalAlignment === WebInspector.Popover.Orientation.Bottom)
+                newElementPosition.y -= scrollerWidth;
+            // Position arrow accurately.
+            this._popupArrowElement.style.left = Math.max(0, anchorBox.x - borderRadius * 2 - arrowOffset) + "px";
+            this._popupArrowElement.style.left += anchorBox.width / 2;
+        }
 
-//         this.element.className = "popover custom-popup-vertical-scroll custom-popup-horizontal-scroll " + verticalAlignment + "-" + horizontalAlignment + "-arrow";
-//         this.element.positionAt(newElementPosition.x - borderWidth, newElementPosition.y - borderWidth, container);
-//         this.element.style.width = newElementPosition.width + borderWidth * 2 + "px";
-//         this.element.style.height = newElementPosition.height + borderWidth * 2 + "px";
+        this.element.className = "popover custom-popup-vertical-scroll custom-popup-horizontal-scroll " + verticalAlignment + "-" + horizontalAlignment + "-arrow";
+        this.element.positionAt(newElementPosition.x - borderWidth, newElementPosition.y - borderWidth, container);
+        this.element.style.width = newElementPosition.width + borderWidth * 2 + "px";
+        this.element.style.height = newElementPosition.height + borderWidth * 2 + "px";
     },
 
     __proto__: WebInspector.View.prototype
