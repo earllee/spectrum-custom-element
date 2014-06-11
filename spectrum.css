@@ -23,7 +23,7 @@
     top: 0;
     left: 0;
     bottom: 0;
-    right: 40px;
+    right: 0px;
 }
 
 .spectrum-display-value {
@@ -39,7 +39,8 @@
     right: 0;
     bottom: 0;
     left: 170px;
-    -webkit-box-reflect: right -28px;
+    -webkit-box-reflect: right -28px none;
+    width: 28px;
 }
 
 .spectrum-fill {
