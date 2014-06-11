@@ -56,7 +56,9 @@ fieldset[disabled] label:hover input {
     top: 0;
     left: 0;
     right: 0;
+    width: 158px;
     bottom: 0;
+    height: 150px;
 }
 
 .view {
