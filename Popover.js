@@ -101,7 +101,7 @@ WebInspector.Popover.prototype = {
         preferredWidth = preferredWidth || preferredSize.width;
         preferredHeight = preferredHeight || preferredSize.height;
 
-        WebInspector.View.prototype.show.call(this, document.body);
+        WebInspector.View.prototype.show.call(this, anchor.parentElement);
 
         if (view)
             view.show(this._contentDiv);
