@@ -74,6 +74,13 @@ var colorPickerPrototype = Object.create(HTMLElement.prototype, {
 
       console.log('Successfully stamped out color-picker!');
     }
+  },
+  attributeChangedCallback: {
+    value: function(attr) {
+      if (attr == 'color') {
+        console.log(attr + " changed to: " + this.getAttribute(attr));
+      }
+    } 
   }
 });
 document.registerElement('color-picker', {prototype: colorPickerPrototype});
