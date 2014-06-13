@@ -5,44 +5,36 @@
 -->
 
 <!-- Color Picker Dependencies -->
-<script type="text/javascript" src="utilities.js"></script>
+<script type="text/javascript" src="common/utilities.js"></script>
 <script type="text/javascript" src="common/WebInspector.js"></script>
 <script type="text/javascript" src="common/Object.js"></script>
 <script type="text/javascript" src="common/UIString.js"></script>
 <script type="text/javascript" src="common/ParsedURL.js"></script>
 <script type="text/javascript" src="common/Color.js"></script>
+<script type="text/javascript" src="common/Platform.js"></script>
 <script type="text/javascript" src="common/Geometry.js"></script>
 <script type="text/javascript" src="common/DOMExtension.js"></script>
+<script type="text/javascript" src="ui/treeoutline.js"></script>
 <script type="text/javascript" src="ui/SettingsUI.js"></script>
 <script type="text/javascript" src="main/Main.js"></script>
 <script type="text/javascript" src="ui/View.js"></script>
 <script type="text/javascript" src="ui/UIUtils.js"></script>
 <script type="text/javascript" src="InspectorFrontendHostStub.js"></script>
+<script type="text/javascript" src="ui/KeyboardShortcut.js"></script>
+<script type="text/javascript" src="ui/TextPrompt.js"></script>
 <!-- Popover: modified -->
 <script type="text/javascript" src="Popover.js"></script>
+<script type="text/javascript" src="ui/TabbedPane.js"></script>
 <script type="text/javascript" src="components/InspectorView.js"></script>
+<script type="text/javascript" src="ui/SidebarPane.js"></script>
+<script type="text/javascript" src="components/Section.js"></script>
+<script type="text/javascript" src="components/PropertiesSection.js"></script>
+<script type="text/javascript" src="sdk/CSSMetadata.js"></script>
 <script type="text/javascript" src="ui/Dialog.js"></script>
+<script type="text/javascript" src="elements/StylesSidebarPane.js"></script>
 
 <!-- Color Picker Module -->
 <script type="text/javascript" src="./ColorPicker.js"></script>
-
-<template id="spectrum-swatch-template">
-<style>
-@import url("spectrum.css")
-</style>
-<nobr>
-<span title="Mouseover txt..." class="swatch">
-  <span class="swatch-inner" style="background-color: rgb(22, 26, 34);"></span>
-</span>
-<span>#161a22</span>
-</nobr>
-</template>
-
-<template id="spectrum-popover-template">
-<style>
-@import url("spectrum.css")
-</style>
-</template>
 
 <template id="color-picker-template">
 <style>
@@ -50,12 +42,17 @@
 </style>
 </template>
 
+<template id="test-template">
+<p>Text. select me.</p>
+</template>
+
 <script>
 var importDoc = document.currentScript.ownerDocument;
 
 // The color picker
 var colorPickerPrototype = Object.create(HTMLElement.prototype, {
-  createdCallback: {
+  createdCallback: 
+  {
     value: function() {
       var t = importDoc.querySelector('#color-picker-template');
       var clone = document.importNode(t.content, true);
@@ -63,19 +60,16 @@ var colorPickerPrototype = Object.create(HTMLElement.prototype, {
 
       root.appendChild(clone);
 
-      if (this.hasAttribute('color')) {
-        this.color = this.getAttribute('color'); 
-      } else {
-        this.color = '#FFFFFF';
-        this.setAttribute('color', this.color);
-      }
+      if (!this.hasAttribute('color'))
+        this.setAttribute('color', "#FFFFFF");
 
-      root.appendChild(processColor(this));
+      root.appendChild(ColorValue(this));
 
       console.log('Successfully stamped out color-picker!');
     }
   },
-  attributeChangedCallback: {
+  attributeChangedCallback: 
+  {
     value: function(attr) {
       if (attr == 'color') {
         console.log(attr + " changed to: " + this.getAttribute(attr));
@@ -85,38 +79,20 @@ var colorPickerPrototype = Object.create(HTMLElement.prototype, {
 });
 document.registerElement('color-picker', {prototype: colorPickerPrototype});
 
-// The swatch
-var spectrumSwatchPrototype = Object.create(HTMLElement.prototype, {
-  createdCallback: {
+// The color picker
+var testProto = Object.create(HTMLElement.prototype, {
+  createdCallback: 
+  {
     value: function() {
-      var t = importDoc.querySelector('#spectrum-swatch-template');
+      var t = importDoc.querySelector('#test-template');
       var clone = document.importNode(t.content, true);
       var root = this.createShadowRoot(); 
+
       root.appendChild(clone);
 
-      console.log('Successfully stamped out spectrum-swatch!');
+      console.log('Successfully stamped out test!');
     }
   }
 });
-document.registerElement('spectrum-swatch', {prototype:
-                         spectrumSwatchPrototype});
-
-// The popover
-var spectrumPopoverPrototype = Object.create(HTMLElement.prototype, {
-  createdCallback: {
-    value: function() {
-      var t = importDoc.querySelector('#spectrum-popover-template');
-      var clone = document.importNode(t.content, true);
-      var root = this.createShadowRoot(); 
-      root.appendChild(clone);
-
-      this.Spectrum = new Spectrum();
-      root.appendChild(this.Spectrum.element);
-
-      console.log('Successfully stamped out spectrum-popover!');
-    }
-  }
-});
-document.registerElement('spectrum-popover', {prototype: spectrumPopoverPrototype});
-
+document.registerElement('test-ele', {prototype: testProto});
 </script>
