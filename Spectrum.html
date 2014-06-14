@@ -42,10 +42,6 @@
 </style>
 </template>
 
-<template id="test-template">
-<p>Text. select me.</p>
-</template>
-
 <script>
 var importDoc = document.currentScript.ownerDocument;
 
@@ -78,21 +74,4 @@ var colorPickerPrototype = Object.create(HTMLElement.prototype, {
   }
 });
 document.registerElement('color-picker', {prototype: colorPickerPrototype});
-
-// The color picker
-var testProto = Object.create(HTMLElement.prototype, {
-  createdCallback: 
-  {
-    value: function() {
-      var t = importDoc.querySelector('#test-template');
-      var clone = document.importNode(t.content, true);
-      var root = this.createShadowRoot(); 
-
-      root.appendChild(clone);
-
-      console.log('Successfully stamped out test!');
-    }
-  }
-});
-document.registerElement('test-ele', {prototype: testProto});
 </script>

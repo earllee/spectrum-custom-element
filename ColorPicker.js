@@ -574,6 +574,11 @@ ColorValue = function(element)
   container.appendChild(colorSwatch.element);
   container.appendChild(colorValueElement);
   colorValueElement.addEventListener("click", function() {ColorValue.prototype.startEditing(colorValueElement)});
+  // TODO: Clean this
+  colorValueElement.addEventListener("blur", function() {
+    colorSwatch.setColorString(colorValueElement.textContent);
+    element.setAttribute('color', colorValueElement.textContent); 
+  });
 
   return container;
 };
@@ -844,15 +849,16 @@ ColorValue.prototype = {
      */
     function blurListener(context, event)
     {
-      var treeElement = this._parentPane._mouseDownTreeElement;
-      var moveDirection = "";
-      if (treeElement === this) {
-        if (isEditingName && this._parentPane._mouseDownTreeElementIsValue)
-          moveDirection = "forward";
-        if (!isEditingName && this._parentPane._mouseDownTreeElementIsName)
-          moveDirection = "backward";
-      }
-      this.editingCommitted(event.target.textContent, context, moveDirection);
+//       var treeElement = this._parentPane._mouseDownTreeElement;
+//       var moveDirection = "";
+//       if (treeElement === this) {
+//         if (isEditingName && this._parentPane._mouseDownTreeElementIsValue)
+//           moveDirection = "forward";
+//         if (!isEditingName && this._parentPane._mouseDownTreeElementIsName)
+//           moveDirection = "backward";
+//       }
+//       this.editingCommitted(event.target.textContent, context, moveDirection);
+      this.editingCommitted(event.target.textContent, context, "forward");
     }
 
     delete this.originalPropertyText;
@@ -986,10 +992,10 @@ ColorValue.prototype = {
         this.expand();
       var editedElement = context.isEditingName ? this.nameElement : this.valueElement;
       // The proxyElement has been deleted, no need to remove listener.
-      if (editedElement.parentElement)
+      if (editedElement && editedElement.parentElement)
         editedElement.parentElement.classList.remove("child-editing");
 
-      delete this._parentPane._isEditingStyle;
+//       delete this._parentPane._isEditingStyle;
     },
 
     editingCancelled: function(element, context)
@@ -1058,17 +1064,17 @@ ColorValue.prototype = {
       var shouldCommitNewProperty = this._newProperty && (isPropertySplitPaste || moveToOther || (!moveDirection && !isEditingName) || (isEditingName && blankInput));
       var section = this.section();
       if (((userInput !== context.previousContent || isDirtyViaPaste) && !this._newProperty) || shouldCommitNewProperty) {
-        section._afterUpdate = moveToNextCallback.bind(this, this._newProperty, !blankInput, section);
-        var propertyText;
-        if (blankInput || (this._newProperty && /^\s*$/.test(this.valueElement.textContent)))
-          propertyText = "";
-        else {
-          if (isEditingName)
-            propertyText = userInput + ": " + this.property.value;
-          else
-            propertyText = this.property.name + ": " + userInput;
-        }
-        this.applyStyleText(propertyText, true, true, false);
+//         section._afterUpdate = moveToNextCallback.bind(this, this._newProperty, !blankInput, section);
+//         var propertyText;
+//         if (blankInput || (this._newProperty && /^\s*$/.test(this.valueElement.textContent)))
+//           propertyText = "";
+//         else {
+//           if (isEditingName)
+//             propertyText = userInput + ": " + this.property.value;
+//           else
+//             propertyText = this.property.name + ": " + userInput;
+//         }
+//         this.applyStyleText(propertyText, true, true, false);
       } else {
         if (isEditingName)
           this.property.name = userInput;
