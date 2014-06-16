@@ -432,6 +432,7 @@ ColorValue = function(element)
   var spectrumHelper = new SpectrumPopupHelper();
   var spectrum = spectrumHelper ? spectrumHelper.spectrum() : null;
 
+  // TODO: Clean
   var isEditable = true;//!!(this._styleRule && this._styleRule.editable !== false); // |editable| is true by default.
   var colorSwatch = new ColorSwatch();
   colorSwatch.setColorString(text);
@@ -448,6 +449,10 @@ ColorValue = function(element)
   function spectrumChanged(e)
   {
     var colorString = /** @type {string} */ (e.data);
+    // If colorString isn't set by event data, THIS should be the text box, in which case get textContent.
+    if (!colorString)
+      colorString = this.textContent;
+    
     spectrum.displayText = colorString;
     colorValueElement.textContent = colorString;
     colorSwatch.setColorString(colorString);
@@ -573,12 +578,15 @@ ColorValue = function(element)
   var container = document.createElement("nobr");
   container.appendChild(colorSwatch.element);
   container.appendChild(colorValueElement);
-  colorValueElement.addEventListener("click", function() {ColorValue.prototype.startEditing(colorValueElement)});
-  // TODO: Clean this
-  colorValueElement.addEventListener("blur", function() {
-    colorSwatch.setColorString(colorValueElement.textContent);
-    element.setAttribute('color', colorValueElement.textContent); 
+  colorValueElement.addEventListener("click", function() {
+    ColorValue.prototype.startEditing(colorValueElement)
   });
+  // TODO: Clean this
+  //  colorValueElement.addEventListener("blur", function() {
+  //    colorSwatch.setColorString(colorValueElement.textContent);
+  //    element.setAttribute('color', colorValueElement.textContent); 
+  //  });
+  colorValueElement.addEventListener("blur", spectrumChanged.bind(colorValueElement));
 
   return container;
 };
@@ -976,94 +984,94 @@ ColorValue.prototype = {
       this._applyFreeFlowStyleTextEditTimer = setTimeout(apply.bind(this), 100);
   },
 
-    kickFreeFlowStyleEditForTest: function()
-    {
-      this._applyFreeFlowStyleTextEdit(true);
-    },
+  kickFreeFlowStyleEditForTest: function()
+  {
+    this._applyFreeFlowStyleTextEdit(true);
+  },
 
-    editingEnded: function(context)
-    {
-      this._resetMouseDownElement();
-      if (this._applyFreeFlowStyleTextEditTimer)
-        clearTimeout(this._applyFreeFlowStyleTextEditTimer);
+  editingEnded: function(context)
+  {
+    this._resetMouseDownElement();
+    if (this._applyFreeFlowStyleTextEditTimer)
+      clearTimeout(this._applyFreeFlowStyleTextEditTimer);
 
-      this.hasChildren = context.hasChildren;
-      if (context.expanded)
-        this.expand();
-      var editedElement = context.isEditingName ? this.nameElement : this.valueElement;
-      // The proxyElement has been deleted, no need to remove listener.
-      if (editedElement && editedElement.parentElement)
-        editedElement.parentElement.classList.remove("child-editing");
+    this.hasChildren = context.hasChildren;
+    if (context.expanded)
+      this.expand();
+    var editedElement = context.isEditingName ? this.nameElement : this.valueElement;
+    // The proxyElement has been deleted, no need to remove listener.
+    if (editedElement && editedElement.parentElement)
+      editedElement.parentElement.classList.remove("child-editing");
 
 //       delete this._parentPane._isEditingStyle;
-    },
+  },
 
-    editingCancelled: function(element, context)
-    {
-      this._removePrompt();
-      this._revertStyleUponEditingCanceled(this.originalPropertyText);
-      // This should happen last, as it clears the info necessary to restore the property value after [Page]Up/Down changes.
-      this.editingEnded(context);
-    },
+  editingCancelled: function(element, context)
+  {
+    this._removePrompt();
+    this._revertStyleUponEditingCanceled(this.originalPropertyText);
+    // This should happen last, as it clears the info necessary to restore the property value after [Page]Up/Down changes.
+    this.editingEnded(context);
+  },
 
-    _revertStyleUponEditingCanceled: function(originalPropertyText)
-    {
-      if (typeof originalPropertyText === "string") {
-        delete this.originalPropertyText;
-        this.applyStyleText(originalPropertyText, true, false, true);
-      } else {
-        if (this._newProperty)
-          this.treeOutline.removeChild(this);
-        else
-          this.updateTitle();
-      }
-    },
+  _revertStyleUponEditingCanceled: function(originalPropertyText)
+  {
+    if (typeof originalPropertyText === "string") {
+      delete this.originalPropertyText;
+      this.applyStyleText(originalPropertyText, true, false, true);
+    } else {
+      if (this._newProperty)
+        this.treeOutline.removeChild(this);
+      else
+        this.updateTitle();
+    }
+  },
 
-    _findSibling: function(moveDirection)
-    {
-      var target = this;
-      do {
-        target = (moveDirection === "forward" ? target.nextSibling : target.previousSibling);
-      } while(target && target.inherited);
+  _findSibling: function(moveDirection)
+  {
+    var target = this;
+    do {
+      target = (moveDirection === "forward" ? target.nextSibling : target.previousSibling);
+    } while(target && target.inherited);
 
-      return target;
-    },
+    return target;
+  },
 
-    /**
-     * @param {string} userInput
-     * @param {!Object} context
-     * @param {string} moveDirection
-     */
-    editingCommitted: function(userInput, context, moveDirection)
-    {
-      this._removePrompt();
-      this.editingEnded(context);
-      var isEditingName = context.isEditingName;
+  /**
+   * @param {string} userInput
+   * @param {!Object} context
+   * @param {string} moveDirection
+   */
+  editingCommitted: function(userInput, context, moveDirection)
+  {
+    this._removePrompt();
+    this.editingEnded(context);
+    var isEditingName = context.isEditingName;
 
-      // Determine where to move to before making changes
-      var createNewProperty, moveToPropertyName, moveToSelector;
-      var isDataPasted = "originalName" in context;
-      var isDirtyViaPaste = isDataPasted && (this.nameElement.textContent !== context.originalName || this.valueElement.textContent !== context.originalValue);
-      var isPropertySplitPaste = isDataPasted && isEditingName && this.valueElement.textContent !== context.originalValue;
-      var moveTo = this;
-      var moveToOther = (isEditingName ^ (moveDirection === "forward"));
-      var abandonNewProperty = this._newProperty && !userInput && (moveToOther || isEditingName);
-      if (moveDirection === "forward" && (!isEditingName || isPropertySplitPaste) || moveDirection === "backward" && isEditingName) {
-        moveTo = moveTo._findSibling(moveDirection);
-        if (moveTo)
-          moveToPropertyName = moveTo.name;
-        else if (moveDirection === "forward" && (!this._newProperty || userInput))
-          createNewProperty = true;
-        else if (moveDirection === "backward")
-          moveToSelector = true;
-      }
+    // Determine where to move to before making changes
+    var createNewProperty, moveToPropertyName, moveToSelector;
+    var isDataPasted = "originalName" in context;
+    var isDirtyViaPaste = isDataPasted && (this.nameElement.textContent !== context.originalName || this.valueElement.textContent !== context.originalValue);
+    var isPropertySplitPaste = isDataPasted && isEditingName && this.valueElement.textContent !== context.originalValue;
+    var moveTo = this;
+    var moveToOther = (isEditingName ^ (moveDirection === "forward"));
+    var abandonNewProperty = this._newProperty && !userInput && (moveToOther || isEditingName);
+    if (moveDirection === "forward" && (!isEditingName || isPropertySplitPaste) || moveDirection === "backward" && isEditingName) {
+      moveTo = moveTo._findSibling(moveDirection);
+      if (moveTo)
+        moveToPropertyName = moveTo.name;
+      else if (moveDirection === "forward" && (!this._newProperty || userInput))
+        createNewProperty = true;
+      else if (moveDirection === "backward")
+        moveToSelector = true;
+    }
 
-      // Make the Changes and trigger the moveToNextCallback after updating.
-      var moveToIndex = moveTo && this.treeOutline ? this.treeOutline.children.indexOf(moveTo) : -1;
-      var blankInput = /^\s*$/.test(userInput);
-      var shouldCommitNewProperty = this._newProperty && (isPropertySplitPaste || moveToOther || (!moveDirection && !isEditingName) || (isEditingName && blankInput));
-      var section = this.section();
-      if (((userInput !== context.previousContent || isDirtyViaPaste) && !this._newProperty) || shouldCommitNewProperty) {
+    // Make the Changes and trigger the moveToNextCallback after updating.
+    var moveToIndex = moveTo && this.treeOutline ? this.treeOutline.children.indexOf(moveTo) : -1;
+    var blankInput = /^\s*$/.test(userInput);
+    var shouldCommitNewProperty = this._newProperty && (isPropertySplitPaste || moveToOther || (!moveDirection && !isEditingName) || (isEditingName && blankInput));
+    var section = this.section();
+    if (((userInput !== context.previousContent || isDirtyViaPaste) && !this._newProperty) || shouldCommitNewProperty) {
 //         section._afterUpdate = moveToNextCallback.bind(this, this._newProperty, !blankInput, section);
 //         var propertyText;
 //         if (blankInput || (this._newProperty && /^\s*$/.test(this.valueElement.textContent)))
@@ -1075,179 +1083,177 @@ ColorValue.prototype = {
 //             propertyText = this.property.name + ": " + userInput;
 //         }
 //         this.applyStyleText(propertyText, true, true, false);
-      } else {
-        if (isEditingName)
-          this.property.name = userInput;
-        else
-          this.property.value = userInput;
-        if (!isDataPasted && !this._newProperty)
-          this.updateTitle();
-        moveToNextCallback.call(this, this._newProperty, false, section);
+    } else {
+      if (isEditingName)
+        this.property.name = userInput;
+      else
+        this.property.value = userInput;
+      if (!isDataPasted && !this._newProperty)
+        this.updateTitle();
+      moveToNextCallback.call(this, this._newProperty, false, section);
+    }
+
+    /**
+     * The Callback to start editing the next/previous property/selector.
+     * @this {WebInspector.StylePropertyTreeElement}
+     */
+    function moveToNextCallback(alreadyNew, valueChanged, section)
+    {
+      if (!moveDirection)
+        return;
+
+      // User just tabbed through without changes.
+      if (moveTo && moveTo.parent) {
+        moveTo.startEditing(!isEditingName ? moveTo.nameElement : moveTo.valueElement);
+        return;
       }
 
-      /**
-       * The Callback to start editing the next/previous property/selector.
-       * @this {WebInspector.StylePropertyTreeElement}
-       */
-      function moveToNextCallback(alreadyNew, valueChanged, section)
-      {
-        if (!moveDirection)
-          return;
-
-        // User just tabbed through without changes.
-        if (moveTo && moveTo.parent) {
-          moveTo.startEditing(!isEditingName ? moveTo.nameElement : moveTo.valueElement);
-          return;
-        }
-
-        // User has made a change then tabbed, wiping all the original treeElements.
-        // Recalculate the new treeElement for the same property we were going to edit next.
-        if (moveTo && !moveTo.parent) {
-          var propertyElements = section.propertiesTreeOutline.children;
-          if (moveDirection === "forward" && blankInput && !isEditingName)
-            --moveToIndex;
-          if (moveToIndex >= propertyElements.length && !this._newProperty)
-            createNewProperty = true;
-          else {
-            var treeElement = moveToIndex >= 0 ? propertyElements[moveToIndex] : null;
-            if (treeElement) {
-              var elementToEdit = !isEditingName || isPropertySplitPaste ? treeElement.nameElement : treeElement.valueElement;
-              if (alreadyNew && blankInput)
-                elementToEdit = moveDirection === "forward" ? treeElement.nameElement : treeElement.valueElement;
-              treeElement.startEditing(elementToEdit);
-              return;
-            } else if (!alreadyNew)
-              moveToSelector = true;
-          }
-        }
-
-        // Create a new attribute in this section (or move to next editable selector if possible).
-        if (createNewProperty) {
-          if (alreadyNew && !valueChanged && (isEditingName ^ (moveDirection === "backward")))
+      // User has made a change then tabbed, wiping all the original treeElements.
+      // Recalculate the new treeElement for the same property we were going to edit next.
+      if (moveTo && !moveTo.parent) {
+        var propertyElements = section.propertiesTreeOutline.children;
+        if (moveDirection === "forward" && blankInput && !isEditingName)
+          --moveToIndex;
+        if (moveToIndex >= propertyElements.length && !this._newProperty)
+          createNewProperty = true;
+        else {
+          var treeElement = moveToIndex >= 0 ? propertyElements[moveToIndex] : null;
+          if (treeElement) {
+            var elementToEdit = !isEditingName || isPropertySplitPaste ? treeElement.nameElement : treeElement.valueElement;
+            if (alreadyNew && blankInput)
+              elementToEdit = moveDirection === "forward" ? treeElement.nameElement : treeElement.valueElement;
+            treeElement.startEditing(elementToEdit);
             return;
-
-          section.addNewBlankProperty().startEditing();
-          return;
+          } else if (!alreadyNew)
+            moveToSelector = true;
         }
+      }
 
-        if (abandonNewProperty) {
-          moveTo = this._findSibling(moveDirection);
-          var sectionToEdit = (moveTo || moveDirection === "backward") ? section : section.nextEditableSibling();
-          if (sectionToEdit) {
-            if (sectionToEdit.rule)
-              sectionToEdit.startEditingSelector();
-            else
-              sectionToEdit._moveEditorFromSelector(moveDirection);
-          }
+      // Create a new attribute in this section (or move to next editable selector if possible).
+      if (createNewProperty) {
+        if (alreadyNew && !valueChanged && (isEditingName ^ (moveDirection === "backward")))
           return;
-        }
 
-        if (moveToSelector) {
-          if (section.rule)
-            section.startEditingSelector();
+        section.addNewBlankProperty().startEditing();
+        return;
+      }
+
+      if (abandonNewProperty) {
+        moveTo = this._findSibling(moveDirection);
+        var sectionToEdit = (moveTo || moveDirection === "backward") ? section : section.nextEditableSibling();
+        if (sectionToEdit) {
+          if (sectionToEdit.rule)
+            sectionToEdit.startEditingSelector();
           else
-            section._moveEditorFromSelector(moveDirection);
+            sectionToEdit._moveEditorFromSelector(moveDirection);
         }
-      }
-    },
-
-    _removePrompt: function()
-    {
-      // BUG 53242. This cannot go into editingEnded(), as it should always happen first for any editing outcome.
-      if (this._prompt) {
-        this._prompt.detach();
-        delete this._prompt;
-      }
-    },
-
-    _hasBeenModifiedIncrementally: function()
-    {
-      // New properties applied via up/down or live editing have an originalPropertyText and will be deleted later
-      // on, if cancelled, when the empty string gets applied as their style text.
-      return typeof this.originalPropertyText === "string" || (!!this.property.propertyText && this._newProperty);
-    },
-
-    styleTextAppliedForTest: function()
-    {
-    },
-
-    applyStyleText: function(styleText, updateInterface, majorChange, isRevert)
-    {
-      function userOperationFinishedCallback(parentPane, updateInterface)
-      {
-        if (updateInterface)
-          delete parentPane._userOperation;
-      }
-
-      // Leave a way to cancel editing after incremental changes.
-      if (!isRevert && !updateInterface && !this._hasBeenModifiedIncrementally()) {
-        // Remember the rule's original CSS text on [Page](Up|Down), so it can be restored
-        // if the editing is canceled.
-        this.originalPropertyText = this.property.propertyText;
-      }
-
-      if (!this.treeOutline)
-        return;
-
-      var section = this.section();
-      styleText = styleText.replace(/\s/g, " ").trim(); // Replace &nbsp; with whitespace.
-      var styleTextLength = styleText.length;
-      if (!styleTextLength && updateInterface && !isRevert && this._newProperty && !this._hasBeenModifiedIncrementally()) {
-        // The user deleted everything and never applied a new property value via Up/Down scrolling/live editing, so remove the tree element and update.
-        this.parent.removeChild(this);
-        section.afterUpdate();
         return;
       }
 
-      var currentNode = this._parentPane._node;
+      if (moveToSelector) {
+        if (section.rule)
+          section.startEditingSelector();
+        else
+          section._moveEditorFromSelector(moveDirection);
+      }
+    }
+  },
+
+  _removePrompt: function()
+  {
+    // BUG 53242. This cannot go into editingEnded(), as it should always happen first for any editing outcome.
+    if (this._prompt) {
+      this._prompt.detach();
+      delete this._prompt;
+    }
+  },
+
+  _hasBeenModifiedIncrementally: function()
+  {
+    // New properties applied via up/down or live editing have an originalPropertyText and will be deleted later
+    // on, if cancelled, when the empty string gets applied as their style text.
+    return typeof this.originalPropertyText === "string" || (!!this.property.propertyText && this._newProperty);
+  },
+
+  styleTextAppliedForTest: function()
+  {
+  },
+
+  applyStyleText: function(styleText, updateInterface, majorChange, isRevert)
+  {
+    function userOperationFinishedCallback(parentPane, updateInterface)
+    {
       if (updateInterface)
-        this._parentPane._userOperation = true;
+        delete parentPane._userOperation;
+    }
 
-      /**
-       * @param {function()} userCallback
-       * @param {string} originalPropertyText
-       * @param {?WebInspector.CSSStyleDeclaration} newStyle
-       * @this {WebInspector.StylePropertyTreeElement}
-       */
-      function callback(userCallback, originalPropertyText, newStyle)
-      {
-        if (!newStyle) {
-          if (updateInterface) {
-            // It did not apply, cancel editing.
-            this._revertStyleUponEditingCanceled(originalPropertyText);
-          }
-          userCallback();
-          return;
+    // Leave a way to cancel editing after incremental changes.
+    if (!isRevert && !updateInterface && !this._hasBeenModifiedIncrementally()) {
+      // Remember the rule's original CSS text on [Page](Up|Down), so it can be restored
+      // if the editing is canceled.
+      this.originalPropertyText = this.property.propertyText;
+    }
+
+    if (!this.treeOutline)
+      return;
+
+    var section = this.section();
+    styleText = styleText.replace(/\s/g, " ").trim(); // Replace &nbsp; with whitespace.
+    var styleTextLength = styleText.length;
+    if (!styleTextLength && updateInterface && !isRevert && this._newProperty && !this._hasBeenModifiedIncrementally()) {
+      // The user deleted everything and never applied a new property value via Up/Down scrolling/live editing, so remove the tree element and update.
+      this.parent.removeChild(this);
+      section.afterUpdate();
+      return;
+    }
+
+    var currentNode = this._parentPane._node;
+    if (updateInterface)
+      this._parentPane._userOperation = true;
+
+    /**
+     * @param {function()} userCallback
+     * @param {string} originalPropertyText
+     * @param {?WebInspector.CSSStyleDeclaration} newStyle
+     * @this {WebInspector.StylePropertyTreeElement}
+     */
+    function callback(userCallback, originalPropertyText, newStyle)
+    {
+      if (!newStyle) {
+        if (updateInterface) {
+          // It did not apply, cancel editing.
+          this._revertStyleUponEditingCanceled(originalPropertyText);
         }
-        this._applyNewStyle(newStyle);
-
-        if (this._newProperty)
-          this._newPropertyInStyle = true;
-
-        this.property = newStyle.propertyAt(this.property.index);
-        if (section && section._parentPane)
-          section._parentPane.dispatchEventToListeners("style edited");
-
-        if (updateInterface && currentNode === this.node()) {
-          this._updatePane(userCallback);
-          this.styleTextAppliedForTest();
-          return;
-        }
-
         userCallback();
+        return;
+      }
+      this._applyNewStyle(newStyle);
+
+      if (this._newProperty)
+        this._newPropertyInStyle = true;
+
+      this.property = newStyle.propertyAt(this.property.index);
+      if (section && section._parentPane)
+        section._parentPane.dispatchEventToListeners("style edited");
+
+      if (updateInterface && currentNode === this.node()) {
+        this._updatePane(userCallback);
         this.styleTextAppliedForTest();
+        return;
       }
 
-      // Append a ";" if the new text does not end in ";".
-      // FIXME: this does not handle trailing comments.
-      if (styleText.length && !/;\s*$/.test(styleText))
-      styleText += ";";
-      var overwriteProperty = !!(!this._newProperty || this._newPropertyInStyle);
-      this.property.setText(styleText, majorChange, overwriteProperty, callback.bind(this, userOperationFinishedCallback.bind(null, this._parentPane, updateInterface), this.originalPropertyText));
-    },
+      userCallback();
+      this.styleTextAppliedForTest();
+    }
+
+    // Append a ";" if the new text does not end in ";".
+    // FIXME: this does not handle trailing comments.
+    if (styleText.length && !/;\s*$/.test(styleText))
+    styleText += ";";
+    var overwriteProperty = !!(!this._newProperty || this._newPropertyInStyle);
+    this.property.setText(styleText, majorChange, overwriteProperty, callback.bind(this, userOperationFinishedCallback.bind(null, this._parentPane, updateInterface), this.originalPropertyText));
+  },
 
   __proto__: WebInspector.StylePropertyTreeElementBase.prototype
 
-}
-
-
+};
