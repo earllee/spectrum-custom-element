@@ -588,6 +588,9 @@ ColorValue = function(element)
     ColorValue.prototype.startEditing(colorValueElement)
   });
   colorValueElement.addEventListener("blur", spectrumChanged.bind(colorValueElement));
+  colorValueElement.addEventListener("blur", function() {
+    element.setAttribute('color', colorValueElement.textContent);
+  });
 
   this.colorSwatch = colorSwatch;
   this.colorValueElement = colorValueElement;
