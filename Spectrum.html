@@ -15,8 +15,6 @@
 <script type="text/javascript" src="common/Geometry.js"></script>
 <script type="text/javascript" src="common/DOMExtension.js"></script>
 <script type="text/javascript" src="ui/treeoutline.js"></script>
-<script type="text/javascript" src="ui/SettingsUI.js"></script>
-<script type="text/javascript" src="main/Main.js"></script>
 <script type="text/javascript" src="ui/View.js"></script>
 <script type="text/javascript" src="ui/UIUtils.js"></script>
 <script type="text/javascript" src="InspectorFrontendHostStub.js"></script>
@@ -55,11 +53,13 @@ var colorPickerPrototype = Object.create(HTMLElement.prototype, {
       var root = this.createShadowRoot(); 
 
       root.appendChild(clone);
-
+      // color -> value
       if (!this.hasAttribute('color'))
         this.setAttribute('color', "#FFFFFF");
 
-      root.appendChild(ColorValue(this));
+      var instance = new ColorValue(this);
+      this.instance = instance;
+      root.appendChild(instance.container);
 
       console.log('Successfully stamped out color-picker!');
     }
@@ -70,8 +70,26 @@ var colorPickerPrototype = Object.create(HTMLElement.prototype, {
       if (attr == 'color') {
         console.log(attr + " changed to: " + this.getAttribute(attr));
       }
+      console.log(this);
     } 
+  },
+  getColor:
+  {
+    value: function() {
+      return this.getAttribute('color');
+    }
+  },
+  setColor:
+  {
+    value: function(colorString) {
+      // TODO: hook editingCommitted to element prototype
+      this.instance.spectrum.displayText = colorString;
+      this.instance.colorValueElement.textContent = colorString;
+      this.instance.colorSwatch.setColorString(colorString);
+      this.setAttribute('color', colorString);
+    }
   }
+
 });
 document.registerElement('color-picker', {prototype: colorPickerPrototype});
 </script>

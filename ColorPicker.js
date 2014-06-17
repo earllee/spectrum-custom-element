@@ -448,10 +448,13 @@ ColorValue = function(element)
            */
   function spectrumChanged(e)
   {
-    var colorString = /** @type {string} */ (e.data);
+    var colorString = '';
+
     // If colorString isn't set by event data, THIS should be the text box, in which case get textContent.
-    if (!colorString)
+    if (!e || !e.data)
       colorString = this.textContent;
+    else
+      colorString = /** @type {string} */ (e.data);
     
     spectrum.displayText = colorString;
     colorValueElement.textContent = colorString;
@@ -575,20 +578,23 @@ ColorValue = function(element)
     colorValueElement.textContent = currentValue;
   }
 
-  var container = document.createElement("nobr");
-  container.appendChild(colorSwatch.element);
-  container.appendChild(colorValueElement);
+  //this.update = spectrumChanged.bind(colorValueElement);
+
+  this.container = document.createElement("nobr");
+  this.container.appendChild(colorSwatch.element);
+  this.container.appendChild(colorValueElement);
+
   colorValueElement.addEventListener("click", function() {
     ColorValue.prototype.startEditing(colorValueElement)
   });
-  // TODO: Clean this
-  //  colorValueElement.addEventListener("blur", function() {
-  //    colorSwatch.setColorString(colorValueElement.textContent);
-  //    element.setAttribute('color', colorValueElement.textContent); 
-  //  });
   colorValueElement.addEventListener("blur", spectrumChanged.bind(colorValueElement));
 
-  return container;
+  this.colorSwatch = colorSwatch;
+  this.colorValueElement = colorValueElement;
+  this.spectrumHelper = spectrumHelper;
+  this.spectrum = spectrum;
+
+//  return container;
 };
 
 ColorValue.prototype = {
@@ -1071,27 +1077,27 @@ ColorValue.prototype = {
     var blankInput = /^\s*$/.test(userInput);
     var shouldCommitNewProperty = this._newProperty && (isPropertySplitPaste || moveToOther || (!moveDirection && !isEditingName) || (isEditingName && blankInput));
     var section = this.section();
-    if (((userInput !== context.previousContent || isDirtyViaPaste) && !this._newProperty) || shouldCommitNewProperty) {
-//         section._afterUpdate = moveToNextCallback.bind(this, this._newProperty, !blankInput, section);
-//         var propertyText;
-//         if (blankInput || (this._newProperty && /^\s*$/.test(this.valueElement.textContent)))
-//           propertyText = "";
-//         else {
-//           if (isEditingName)
-//             propertyText = userInput + ": " + this.property.value;
-//           else
-//             propertyText = this.property.name + ": " + userInput;
-//         }
-//         this.applyStyleText(propertyText, true, true, false);
-    } else {
-      if (isEditingName)
-        this.property.name = userInput;
-      else
-        this.property.value = userInput;
-      if (!isDataPasted && !this._newProperty)
-        this.updateTitle();
-      moveToNextCallback.call(this, this._newProperty, false, section);
-    }
+//     if (((userInput !== context.previousContent || isDirtyViaPaste) && !this._newProperty) || shouldCommitNewProperty) {
+// //         section._afterUpdate = moveToNextCallback.bind(this, this._newProperty, !blankInput, section);
+// //         var propertyText;
+// //         if (blankInput || (this._newProperty && /^\s*$/.test(this.valueElement.textContent)))
+// //           propertyText = "";
+// //         else {
+// //           if (isEditingName)
+// //             propertyText = userInput + ": " + this.property.value;
+// //           else
+// //             propertyText = this.property.name + ": " + userInput;
+// //         }
+// //         this.applyStyleText(propertyText, true, true, false);
+//     } else {
+//       if (isEditingName)
+//         this.property.name = userInput;
+//       else
+//         this.property.value = userInput;
+//       if (!isDataPasted && !this._newProperty)
+//         this.updateTitle();
+//       moveToNextCallback.call(this, this._newProperty, false, section);
+//     }
 
     /**
      * The Callback to start editing the next/previous property/selector.
