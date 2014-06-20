@@ -15,7 +15,6 @@ ui/DataGrid.js
 ui/DropDownMenu.js
 ui/EmptyView.js
 ui/InplaceEditor.js
-ui/KeyboardShortcut.js
 ui/PieChart.js
 ui/ProgressIndicator.js
 ui/ResizerWidget.js

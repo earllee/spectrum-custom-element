@@ -82,7 +82,6 @@ var colorPickerPrototype = Object.create(HTMLElement.prototype, {
   setColor:
   {
     value: function(colorString) {
-      // TODO: hook editingCommitted to element prototype
       this.instance.spectrum.displayText = colorString;
       this.instance.colorValueElement.textContent = colorString;
       this.instance.colorSwatch.setColorString(colorString);
