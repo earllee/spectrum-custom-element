@@ -67,10 +67,9 @@ var colorPickerPrototype = Object.create(HTMLElement.prototype, {
   attributeChangedCallback: 
   {
     value: function(attr) {
-      if (attr == 'color') {
-        console.log(attr + " changed to: " + this.getAttribute(attr));
-      }
-      console.log(this);
+      var event = new Event('colorChanged');
+      this.dispatchEvent(event);
+      return;
     } 
   },
   getColor:

@@ -1,3 +1,5 @@
+// Spectrum.js code
+
 Spectrum = function()
 {
   WebInspector.VBox.call(this);
@@ -416,14 +418,18 @@ ColorSwatch = function(readOnly)
 
 ColorSwatch.prototype = {
   /**
-           * @param {string} colorString
-           */
+   * @param {string} colorString
+   */
   setColorString: function(colorString)
   {
     this._swatchInnerElement.style.backgroundColor = colorString;
   }
 };
 
+/**
+ * ColorValue essentially replaces _processColor in StylesSidebarPane.js
+ * @param {element} element: the custom element to be hooked up with Spectrum
+ */
 ColorValue = function(element)
 {
   var text = element.getAttribute('color');
@@ -432,8 +438,6 @@ ColorValue = function(element)
   var spectrumHelper = new SpectrumPopupHelper();
   var spectrum = spectrumHelper ? spectrumHelper.spectrum() : null;
 
-  // TODO: Clean
-  var isEditable = true;//!!(this._styleRule && this._styleRule.editable !== false); // |editable| is true by default.
   var colorSwatch = new ColorSwatch();
   colorSwatch.setColorString(text);
   colorSwatch.element.addEventListener("click", swatchClick.bind(element), false);
@@ -443,9 +447,9 @@ ColorValue = function(element)
   var boundSpectrumHidden = spectrumHidden.bind(element);
 
   /**
-           * @param {!WebInspector.Event} e
-           * @this {WebInspector.StylePropertyTreeElementBase}
-           */
+   * @param {!WebInspector.Event} e
+   * @this {WebInspector.StylePropertyTreeElementBase}
+   */
   function spectrumChanged(e)
   {
     var colorString = '';
@@ -460,24 +464,18 @@ ColorValue = function(element)
     colorValueElement.textContent = colorString;
     colorSwatch.setColorString(colorString);
     this.setAttribute('color', colorString);
-    //this.applyStyleText(nameElement.textContent + ": " + valueElement.textContent, false, false, false);
   }
 
   /**
-           * @param {!WebInspector.Event} event
-           * @this {WebInspetor.StylePropertyTreeElementBase}
-           */
+   * @param {!WebInspector.Event} event
+   * @this {WebInspetor.StylePropertyTreeElementBase}
+   */
   function spectrumHidden(event)
   {
-    if (scrollerElement)
-      scrollerElement.removeEventListener("scroll", repositionSpectrum, false);
     var commitEdit = event.data;
     this.setAttribute('color', colorValueElement.textContent);
     spectrum.removeEventListener(Spectrum.Events.ColorChanged, boundSpectrumChanged);
     spectrumHelper.removeEventListener(SpectrumPopupHelper.Events.Hidden, boundSpectrumHidden);
-
-    //delete this.editablePane()._isEditingStyle;
-    delete this.originalPropertyText;
   }
 
   function repositionSpectrum()
@@ -486,9 +484,9 @@ ColorValue = function(element)
   }
 
   /**
-           * @param {?Event} e
-           * @this {WebInspector.StylePropertyTreeElementBase}
-           */
+   * @param {?Event} e
+   * @this {WebInspector.StylePropertyTreeElementBase}
+   */
   function swatchClick(e)
   {
     e.consume(true);
@@ -507,12 +505,6 @@ ColorValue = function(element)
       spectrum.displayText = color.toString(format);
       spectrum.addEventListener(Spectrum.Events.ColorChanged, boundSpectrumChanged);
       spectrumHelper.addEventListener(SpectrumPopupHelper.Events.Hidden, boundSpectrumHidden);
-
-      scrollerElement = colorSwatch.element.enclosingNodeOrSelfWithClass("scroll-target");
-      if (scrollerElement)
-        scrollerElement.addEventListener("scroll", repositionSpectrum, false);
-      //else
-      //    console.error("Unable to handle color picker scrolling");
     }
   }
 
@@ -521,8 +513,8 @@ ColorValue = function(element)
   colorValueElement.textContent = color.toString(format);
 
   /**
-           * @param {string} curFormat
-           */
+   * @param {string} curFormat
+   */
   function nextFormat(curFormat)
   {
     // The format loop is as follows:
@@ -578,8 +570,6 @@ ColorValue = function(element)
     colorValueElement.textContent = currentValue;
   }
 
-  //this.update = spectrumChanged.bind(colorValueElement);
-
   this.container = document.createElement("nobr");
   this.container.appendChild(colorSwatch.element);
   this.container.appendChild(colorValueElement);
@@ -594,75 +584,10 @@ ColorValue = function(element)
 
   this.colorSwatch = colorSwatch;
   this.colorValueElement = colorValueElement;
-  this.spectrumHelper = spectrumHelper;
   this.spectrum = spectrum;
-
-//  return container;
 };
 
 ColorValue.prototype = {
-  /**
-   * @return {?WebInspector.DOMNode}
-   */
-  node: function()
-  {
-    return this._parentPane._node;
-  },
-
-  /**
-   * @return {?WebInspector.StylesSidebarPane}
-   */
-  editablePane: function()
-  {
-    return this._parentPane;
-  },
-
-  /**
-   * @return {!WebInspector.StylesSidebarPane}
-   */
-  parentPane: function()
-  {
-    return this._parentPane;
-  },
-
-  /**
-   * @return {?WebInspector.StylePropertiesSection}
-   */
-  section: function()
-  {
-    return this.treeOutline && this.treeOutline.section;
-  },
-
-  /**
-   * @param {function()=} userCallback
-   */
-  _updatePane: function(userCallback)
-  {
-    var section = this.section();
-    if (section && section._parentPane)
-      section._parentPane._refreshUpdate(section, false, userCallback);
-    else  {
-      if (userCallback)
-        userCallback();
-    }
-  },
-
-  /**
-   * @param {!WebInspector.CSSStyleDeclaration} newStyle
-   */
-  _applyNewStyle: function(newStyle)
-  {
-    newStyle.parentRule = this.style.parentRule;
-    var oldStyleRange = /** @type {!WebInspector.TextRange} */ (this.style.range);
-    var newStyleRange = /** @type {!WebInspector.TextRange} */ (newStyle.range);
-    this.style = newStyle;
-    this._styleRule.style = newStyle;
-    if (this.style.parentRule) {
-      this.style.parentRule.style = this.style;
-      this._parentPane._styleSheetRuleEdited(this.style.parentRule, oldStyleRange, newStyleRange);
-    }
-  },
-
   /**
    * @param {?Event} event
    */
@@ -745,20 +670,6 @@ ColorValue.prototype = {
       delete this._parentPane._mouseDownTreeElement;
       delete this._parentPane._mouseDownTreeElementIsName;
       delete this._parentPane._mouseDownTreeElementIsValue;
-    }
-  },
-
-  updateTitle: function()
-  {
-    WebInspector.StylePropertyTreeElementBase.prototype.updateTitle.call(this);
-
-    if (this.parsedOk && this.section() && this.parent.root) {
-      var enabledCheckboxElement = document.createElement("input");
-      enabledCheckboxElement.className = "enabled-button";
-      enabledCheckboxElement.type = "checkbox";
-      enabledCheckboxElement.checked = !this.disabled;
-      enabledCheckboxElement.addEventListener("click", this.toggleEnabled.bind(this), false);
-      this.listItemElement.insertBefore(enabledCheckboxElement, this.listItemElement.firstChild);
     }
   },
 
@@ -866,38 +777,15 @@ ColorValue.prototype = {
      */
     function blurListener(context, event)
     {
-//       var treeElement = this._parentPane._mouseDownTreeElement;
-//       var moveDirection = "";
-//       if (treeElement === this) {
-//         if (isEditingName && this._parentPane._mouseDownTreeElementIsValue)
-//           moveDirection = "forward";
-//         if (!isEditingName && this._parentPane._mouseDownTreeElementIsName)
-//           moveDirection = "backward";
-//       }
-//       this.editingCommitted(event.target.textContent, context, moveDirection);
       this.editingCommitted(event.target.textContent, context, "forward");
     }
 
-    delete this.originalPropertyText;
-
-//    this._parentPane._isEditingStyle = true;
-//    if (selectElement.parentElement)
-//      selectElement.parentElement.scrollIntoViewIfNeeded(false);
-
-//    var applyItemCallback = !isEditingName ? this._applyFreeFlowStyleTextEdit.bind(this, true) : undefined;
     this._prompt = new WebInspector.StylesSidebarPane.CSSPropertyPrompt(WebInspector.CSSMetadata.keywordsForProperty('color'), this, false);
-//    if (applyItemCallback) {
-//      this._prompt.addEventListener(WebInspector.TextPrompt.Events.ItemApplied, applyItemCallback, this);
-//      this._prompt.addEventListener(WebInspector.TextPrompt.Events.ItemAccepted, applyItemCallback, this);
-//    }
-//    var proxyElement = this._prompt.attachAndStartEditing(selectElement, blurListener.bind(this, context));
     context = {expanded: false, hasChildren: false, isEditingName: false, previousContent: selectElement.textContent};
     var proxyElement = this._prompt.attachAndStartEditing(selectElement, blurListener.bind(this, context));
 
     proxyElement.addEventListener("keydown", this.editingNameValueKeyDown.bind(this, context), false);
     proxyElement.addEventListener("keypress", this.editingNameValueKeyPress.bind(this, context), false);
-//     if (isEditingName)
-//       proxyElement.addEventListener("paste", pasteHandler.bind(this, context), false);
 
     window.getSelection().setBaseAndExtent(selectElement, 0, selectElement, 1);
   },
@@ -941,9 +829,6 @@ ColorValue.prototype = {
       event.consume();
       return;
     }
-
-//     if (!isEditingName)
-//       this._applyFreeFlowStyleTextEdit(false);
   },
 
   editingNameValueKeyPress: function(context, event)
@@ -1011,20 +896,21 @@ ColorValue.prototype = {
     // The proxyElement has been deleted, no need to remove listener.
     if (editedElement && editedElement.parentElement)
       editedElement.parentElement.classList.remove("child-editing");
-
-//       delete this._parentPane._isEditingStyle;
   },
 
   editingCancelled: function(element, context)
   {
     this._removePrompt();
-    this._revertStyleUponEditingCanceled(this.originalPropertyText);
+    // FIXME:
+    // this._revertStyleUponEditingCanceled(context.previousContent);
+
     // This should happen last, as it clears the info necessary to restore the property value after [Page]Up/Down changes.
     this.editingEnded(context);
   },
 
   _revertStyleUponEditingCanceled: function(originalPropertyText)
   {
+    console.log(originalPropertyText)
     if (typeof originalPropertyText === "string") {
       delete this.originalPropertyText;
       this.applyStyleText(originalPropertyText, true, false, true);
@@ -1036,16 +922,6 @@ ColorValue.prototype = {
     }
   },
 
-  _findSibling: function(moveDirection)
-  {
-    var target = this;
-    do {
-      target = (moveDirection === "forward" ? target.nextSibling : target.previousSibling);
-    } while(target && target.inherited);
-
-    return target;
-  },
-
   /**
    * @param {string} userInput
    * @param {!Object} context
@@ -1055,117 +931,6 @@ ColorValue.prototype = {
   {
     this._removePrompt();
     this.editingEnded(context);
-    var isEditingName = context.isEditingName;
-
-    // Determine where to move to before making changes
-    var createNewProperty, moveToPropertyName, moveToSelector;
-    var isDataPasted = "originalName" in context;
-    var isDirtyViaPaste = isDataPasted && (this.nameElement.textContent !== context.originalName || this.valueElement.textContent !== context.originalValue);
-    var isPropertySplitPaste = isDataPasted && isEditingName && this.valueElement.textContent !== context.originalValue;
-    var moveTo = this;
-    var moveToOther = (isEditingName ^ (moveDirection === "forward"));
-    var abandonNewProperty = this._newProperty && !userInput && (moveToOther || isEditingName);
-    if (moveDirection === "forward" && (!isEditingName || isPropertySplitPaste) || moveDirection === "backward" && isEditingName) {
-      moveTo = moveTo._findSibling(moveDirection);
-      if (moveTo)
-        moveToPropertyName = moveTo.name;
-      else if (moveDirection === "forward" && (!this._newProperty || userInput))
-        createNewProperty = true;
-      else if (moveDirection === "backward")
-        moveToSelector = true;
-    }
-
-    // Make the Changes and trigger the moveToNextCallback after updating.
-    var moveToIndex = moveTo && this.treeOutline ? this.treeOutline.children.indexOf(moveTo) : -1;
-    var blankInput = /^\s*$/.test(userInput);
-    var shouldCommitNewProperty = this._newProperty && (isPropertySplitPaste || moveToOther || (!moveDirection && !isEditingName) || (isEditingName && blankInput));
-    var section = this.section();
-//     if (((userInput !== context.previousContent || isDirtyViaPaste) && !this._newProperty) || shouldCommitNewProperty) {
-// //         section._afterUpdate = moveToNextCallback.bind(this, this._newProperty, !blankInput, section);
-// //         var propertyText;
-// //         if (blankInput || (this._newProperty && /^\s*$/.test(this.valueElement.textContent)))
-// //           propertyText = "";
-// //         else {
-// //           if (isEditingName)
-// //             propertyText = userInput + ": " + this.property.value;
-// //           else
-// //             propertyText = this.property.name + ": " + userInput;
-// //         }
-// //         this.applyStyleText(propertyText, true, true, false);
-//     } else {
-//       if (isEditingName)
-//         this.property.name = userInput;
-//       else
-//         this.property.value = userInput;
-//       if (!isDataPasted && !this._newProperty)
-//         this.updateTitle();
-//       moveToNextCallback.call(this, this._newProperty, false, section);
-//     }
-
-    /**
-     * The Callback to start editing the next/previous property/selector.
-     * @this {WebInspector.StylePropertyTreeElement}
-     */
-    function moveToNextCallback(alreadyNew, valueChanged, section)
-    {
-      if (!moveDirection)
-        return;
-
-      // User just tabbed through without changes.
-      if (moveTo && moveTo.parent) {
-        moveTo.startEditing(!isEditingName ? moveTo.nameElement : moveTo.valueElement);
-        return;
-      }
-
-      // User has made a change then tabbed, wiping all the original treeElements.
-      // Recalculate the new treeElement for the same property we were going to edit next.
-      if (moveTo && !moveTo.parent) {
-        var propertyElements = section.propertiesTreeOutline.children;
-        if (moveDirection === "forward" && blankInput && !isEditingName)
-          --moveToIndex;
-        if (moveToIndex >= propertyElements.length && !this._newProperty)
-          createNewProperty = true;
-        else {
-          var treeElement = moveToIndex >= 0 ? propertyElements[moveToIndex] : null;
-          if (treeElement) {
-            var elementToEdit = !isEditingName || isPropertySplitPaste ? treeElement.nameElement : treeElement.valueElement;
-            if (alreadyNew && blankInput)
-              elementToEdit = moveDirection === "forward" ? treeElement.nameElement : treeElement.valueElement;
-            treeElement.startEditing(elementToEdit);
-            return;
-          } else if (!alreadyNew)
-            moveToSelector = true;
-        }
-      }
-
-      // Create a new attribute in this section (or move to next editable selector if possible).
-      if (createNewProperty) {
-        if (alreadyNew && !valueChanged && (isEditingName ^ (moveDirection === "backward")))
-          return;
-
-        section.addNewBlankProperty().startEditing();
-        return;
-      }
-
-      if (abandonNewProperty) {
-        moveTo = this._findSibling(moveDirection);
-        var sectionToEdit = (moveTo || moveDirection === "backward") ? section : section.nextEditableSibling();
-        if (sectionToEdit) {
-          if (sectionToEdit.rule)
-            sectionToEdit.startEditingSelector();
-          else
-            sectionToEdit._moveEditorFromSelector(moveDirection);
-        }
-        return;
-      }
-
-      if (moveToSelector) {
-        if (section.rule)
-          section.startEditingSelector();
-        else
-          section._moveEditorFromSelector(moveDirection);
-      }
-    }
   },
 
   _removePrompt: function()
@@ -1182,85 +947,6 @@ ColorValue.prototype = {
     // New properties applied via up/down or live editing have an originalPropertyText and will be deleted later
     // on, if cancelled, when the empty string gets applied as their style text.
     return typeof this.originalPropertyText === "string" || (!!this.property.propertyText && this._newProperty);
-  },
-
-  styleTextAppliedForTest: function()
-  {
-  },
-
-  applyStyleText: function(styleText, updateInterface, majorChange, isRevert)
-  {
-    function userOperationFinishedCallback(parentPane, updateInterface)
-    {
-      if (updateInterface)
-        delete parentPane._userOperation;
-    }
-
-    // Leave a way to cancel editing after incremental changes.
-    if (!isRevert && !updateInterface && !this._hasBeenModifiedIncrementally()) {
-      // Remember the rule's original CSS text on [Page](Up|Down), so it can be restored
-      // if the editing is canceled.
-      this.originalPropertyText = this.property.propertyText;
-    }
-
-    if (!this.treeOutline)
-      return;
-
-    var section = this.section();
-    styleText = styleText.replace(/\s/g, " ").trim(); // Replace &nbsp; with whitespace.
-    var styleTextLength = styleText.length;
-    if (!styleTextLength && updateInterface && !isRevert && this._newProperty && !this._hasBeenModifiedIncrementally()) {
-      // The user deleted everything and never applied a new property value via Up/Down scrolling/live editing, so remove the tree element and update.
-      this.parent.removeChild(this);
-      section.afterUpdate();
-      return;
-    }
-
-    var currentNode = this._parentPane._node;
-    if (updateInterface)
-      this._parentPane._userOperation = true;
-
-    /**
-     * @param {function()} userCallback
-     * @param {string} originalPropertyText
-     * @param {?WebInspector.CSSStyleDeclaration} newStyle
-     * @this {WebInspector.StylePropertyTreeElement}
-     */
-    function callback(userCallback, originalPropertyText, newStyle)
-    {
-      if (!newStyle) {
-        if (updateInterface) {
-          // It did not apply, cancel editing.
-          this._revertStyleUponEditingCanceled(originalPropertyText);
-        }
-        userCallback();
-        return;
-      }
-      this._applyNewStyle(newStyle);
-
-      if (this._newProperty)
-        this._newPropertyInStyle = true;
-
-      this.property = newStyle.propertyAt(this.property.index);
-      if (section && section._parentPane)
-        section._parentPane.dispatchEventToListeners("style edited");
-
-      if (updateInterface && currentNode === this.node()) {
-        this._updatePane(userCallback);
-        this.styleTextAppliedForTest();
-        return;
-      }
-
-      userCallback();
-      this.styleTextAppliedForTest();
-    }
-
-    // Append a ";" if the new text does not end in ";".
-    // FIXME: this does not handle trailing comments.
-    if (styleText.length && !/;\s*$/.test(styleText))
-    styleText += ";";
-    var overwriteProperty = !!(!this._newProperty || this._newPropertyInStyle);
-    this.property.setText(styleText, majorChange, overwriteProperty, callback.bind(this, userOperationFinishedCallback.bind(null, this._parentPane, updateInterface), this.originalPropertyText));
   },
 
   __proto__: WebInspector.StylePropertyTreeElementBase.prototype
