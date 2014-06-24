@@ -573,9 +573,11 @@ ColorValue = function(element)
   this.container = document.createElement("nobr");
   this.container.appendChild(colorSwatch.element);
   this.container.appendChild(colorValueElement);
+  
+  var boundStartEditing = ColorValue.prototype.startEditing.bind(this);
 
   colorValueElement.addEventListener("click", function() {
-    ColorValue.prototype.startEditing(colorValueElement)
+    boundStartEditing(colorValueElement)
   });
   colorValueElement.addEventListener("blur", spectrumChanged.bind(colorValueElement));
   colorValueElement.addEventListener("blur", function() {
@@ -585,6 +587,7 @@ ColorValue = function(element)
   this.colorSwatch = colorSwatch;
   this.colorValueElement = colorValueElement;
   this.spectrum = spectrum;
+  this.colorPicker = element;
 };
 
 ColorValue.prototype = {
@@ -900,12 +903,8 @@ ColorValue.prototype = {
 
   editingCancelled: function(element, context)
   {
+    this.colorPicker.setColor(context.previousContent);
     this._removePrompt();
-    // FIXME:
-    // this._revertStyleUponEditingCanceled(context.previousContent);
-
-    // This should happen last, as it clears the info necessary to restore the property value after [Page]Up/Down changes.
-    this.editingEnded(context);
   },
 
   _revertStyleUponEditingCanceled: function(originalPropertyText)
@@ -948,7 +947,5 @@ ColorValue.prototype = {
     // on, if cancelled, when the empty string gets applied as their style text.
     return typeof this.originalPropertyText === "string" || (!!this.property.propertyText && this._newProperty);
   },
-
-  __proto__: WebInspector.StylePropertyTreeElementBase.prototype
 
 };
